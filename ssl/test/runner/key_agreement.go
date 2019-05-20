@@ -841,7 +841,7 @@ func (ka *pskKeyAgreement) generateClientKeyExchange(config *Config, clientHello
 	// test code, the server always sends the hint and it is
 	// required to match.
 	if ka.identityHint != config.PreSharedKeyIdentity {
-		return nil, nil, errors.New("tls: unexpected identity")
+		return nil, nil, errors.New("tls: unexpected identityHint")
 	}
 
 	// Serialize the identity.

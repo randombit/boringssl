@@ -86,6 +86,9 @@ type ShimConfiguration struct {
 	// disabled.
 	DisabledTests map[string]string
 
+	// LooseErrorTests is a list of tests which are treated as loose errors
+	LooseErrorTests map[string]string
+
 	// ErrorMap maps from expected error strings to the correct error
 	// string for the shim in question. For example, it might map
 	// “:NO_SHARED_CIPHER:” (a BoringSSL error string) to something
@@ -1222,9 +1225,13 @@ func acceptOrWait(listener *net.TCPListener, waitChan chan error) (net.Conn, err
 	}
 }
 
-func translateExpectedError(errorStr string) string {
+func translateExpectedError(testName string, errorStr string) string {
 	if translated, ok := shimConfig.ErrorMap[errorStr]; ok {
 		return translated
+	}
+
+	if _, ok := shimConfig.LooseErrorTests[testName]; ok {
+		return ""
 	}
 
 	if *looseErrors {
@@ -1581,7 +1588,7 @@ func runTest(statusChan chan statusMsg, test *testCase, shimPath string, mallocN
 	}
 
 	failed := err != nil || childErr != nil
-	expectedError := translateExpectedError(test.expectedError)
+	expectedError := translateExpectedError(test.name, test.expectedError)
 	correctFailure := len(expectedError) == 0 || strings.Contains(stderr, expectedError)
 
 	localError := "none"
