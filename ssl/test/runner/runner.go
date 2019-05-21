@@ -53,6 +53,7 @@ var (
 	useValgrind        = flag.Bool("valgrind", false, "If true, run code under valgrind")
 	useGDB             = flag.Bool("gdb", false, "If true, run BoringSSL code under gdb")
 	useLLDB            = flag.Bool("lldb", false, "If true, run BoringSSL code under lldb")
+	useStrace          = flag.Bool("strace", false, "If true, run BoringSSL code under strace")
 	flagDebug          = flag.Bool("debug", false, "Hexdump the contents of the connection")
 	mallocTest         = flag.Int64("malloc-test", -1, "If non-negative, run each test with each malloc in turn failing from the given number onwards.")
 	mallocTestDebug    = flag.Bool("malloc-test-debug", false, "If true, ask bssl_shim to abort rather than fail a malloc. This can be used with a specific value for --malloc-test to identity the malloc failing that is causing problems.")
@@ -1085,6 +1086,14 @@ func doExchange(test *testCase, config *Config, conn net.Conn, isResume bool, tr
 
 const xtermSize = "140x50"
 
+func straceOf(path string, args ...string) *exec.Cmd {
+	straceArgs := []string{"-o", "/tmp/strace.log"}
+	straceArgs = append(straceArgs, path)
+	straceArgs = append(straceArgs, args...)
+
+	return exec.Command("strace", straceArgs...)
+}
+
 func valgrindOf(dbAttach bool, path string, args ...string) *exec.Cmd {
 	valgrindArgs := []string{"--error-exitcode=99", "--track-origins=yes", "--leak-check=full", "--quiet"}
 	if dbAttach {
@@ -1306,7 +1315,9 @@ func runTest(test *testCase, shimPath string, mallocNumToFail int64) error {
 	flags = append(flags, test.flags...)
 
 	var shim *exec.Cmd
-	if *useValgrind {
+	if *useStrace {
+		shim = straceOf(shimPath, flags...)
+	} else if *useValgrind {
 		shim = valgrindOf(false, shimPath, flags...)
 	} else if *useGDB {
 		shim = gdbOf(shimPath, flags...)
