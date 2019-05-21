@@ -1227,6 +1227,7 @@ func runTest(test *testCase, shimPath string, mallocNumToFail int64) error {
 	}()
 
 	flags := []string{"-port", strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)}
+	flags = append(flags, "-test-name", test.name)
 	if test.testType == serverTest {
 		flags = append(flags, "-server")
 
