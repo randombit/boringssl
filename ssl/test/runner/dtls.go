@@ -32,7 +32,7 @@ func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
 	b := c.rawInput
 
 	// Read a new packet only if the current one is empty.
-	var newPacket bool
+	//var newPacket bool
 	if len(b.data) == 0 {
 		// Pick some absurdly large buffer size.
 		b.resize(maxCiphertext + recordHeaderLen)
@@ -44,7 +44,7 @@ func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
 			return 0, nil, fmt.Errorf("dtls: exceeded maximum packet length")
 		}
 		c.rawInput.resize(n)
-		newPacket = true
+		//newPacket = true
 	}
 
 	// Read out one record.
@@ -111,9 +111,11 @@ func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
 
 	// Require that ChangeCipherSpec always share a packet with either the
 	// previous or next handshake message.
+	/*
 	if newPacket && typ == recordTypeChangeCipherSpec && c.rawInput == nil {
 		return 0, nil, c.in.setErrorLocked(fmt.Errorf("dtls: ChangeCipherSpec not packed together with Finished"))
 	}
+*/
 
 	return typ, b, nil
 }
