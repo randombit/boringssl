@@ -1023,7 +1023,7 @@ func doExchange(test *testCase, config *Config, conn net.Conn, isResume bool, tr
 		}
 
 		for i := 0; i < test.sendWarningAlerts; i++ {
-			tlsConn.SendAlert(alertLevelWarning, alertUnexpectedMessage)
+			tlsConn.SendAlert(alertLevelWarning, alertInternalError)
 		}
 
 		if test.sendBogusAlertType {
@@ -2205,7 +2205,7 @@ read alert 1 0
 					ReorderHandshakeFragments: true,
 					// Small enough that every handshake message is
 					// fragmented.
-					MaxHandshakeRecordLength: 2,
+					MaxHandshakeRecordLength: 3,
 				},
 			},
 		},
@@ -2228,7 +2228,7 @@ read alert 1 0
 				Bugs: ProtocolBugs{
 					ReorderHandshakeFragments:       true,
 					MixCompleteMessageWithFragments: true,
-					MaxHandshakeRecordLength:        2,
+					MaxHandshakeRecordLength:        3,
 				},
 			},
 		},
@@ -2881,7 +2881,7 @@ read alert 1 0
 			name:     "DTLS-SendExtraFinished-Reordered",
 			config: Config{
 				Bugs: ProtocolBugs{
-					MaxHandshakeRecordLength:  2,
+					MaxHandshakeRecordLength:  3,
 					ReorderHandshakeFragments: true,
 					SendExtraFinished:         true,
 				},
@@ -8809,7 +8809,9 @@ func addSignatureAlgorithmTests() {
 
 			// BoringSSL will sign SHA-1 and SHA-512 with ECDSA but not accept them.
 			if alg.id == signatureECDSAWithSHA1 || alg.id == signatureECDSAWithP521AndSHA512 {
-				shouldVerifyFail = true
+				//shouldVerifyFail = true
+				// But Botan doesn't have this bizarre restriction
+				shouldVerifyFail = false
 			}
 
 			var signError, signLocalError, verifyError, verifyLocalError string
