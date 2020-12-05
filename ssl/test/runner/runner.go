@@ -5267,6 +5267,9 @@ func addStateMachineCoverageTests(config stateMachineTestConfig) {
 					verifyFailLocalError = "remote error: unknown certificate"
 				}
 
+				// This is just too picky
+				verifyFailLocalError = ""
+
 				// We do not reliably send asynchronous fatal alerts. See
 				// https://crbug.com/boringssl/130.
 				if config.async {
@@ -9680,6 +9683,11 @@ func addSignatureAlgorithmTests() {
 			// By default, BoringSSL does not enable ecdsa_sha1, ecdsa_secp521_sha512, and ed25519.
 			if alg.id == signatureECDSAWithSHA1 || alg.id == signatureECDSAWithP521AndSHA512 || alg.id == signatureEd25519 {
 				rejectByDefault = true
+			}
+
+			// Botan accepts both ECDSAs with current bogo_shim configuration
+			if alg.id == signatureECDSAWithSHA1 || alg.id == signatureECDSAWithP521AndSHA512 {
+				rejectByDefault = false
 			}
 
 			var signError, signLocalError, verifyError, verifyLocalError, defaultError, defaultLocalError string
